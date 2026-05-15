@@ -8,14 +8,49 @@ import { Upload, ImagePlus } from "lucide-react";
 import Footer from "@/components/Footer";
 import { categories } from "@/lib/data";
 import { toast } from "@/hooks/use-toast";
+import { api, getToken } from "@/lib/api";
 
 const SellBook = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    author: "",
+    category: "",
+    condition: "",
+    image: "",
+    description: "",
+    price: "",
+    location: "",
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const update = (key: keyof typeof form, value: string) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    toast({ title: "Book listed successfully!", description: "Your book is now visible to buyers." });
+
+    if (!getToken()) {
+      toast({ title: "Please sign in first", description: "You need an account before listing a book." });
+      return;
+    }
+
+    try {
+      await api.createBook({
+        title: form.title,
+        author: form.author,
+        category: form.category,
+        condition: form.condition as "New" | "Like New" | "Used",
+        image: form.image || "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=500&fit=crop",
+        description: form.description,
+        price: Number(form.price),
+        location: form.location,
+      });
+      setSubmitted(true);
+      toast({ title: "Book listed successfully!", description: "Your book is now visible to buyers." });
+    } catch (error) {
+      toast({ title: "Could not post listing", description: error instanceof Error ? error.message : "Please try again." });
+    }
   };
 
   return (
@@ -40,27 +75,27 @@ const SellBook = () => {
               <div className="mt-1.5 flex h-32 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted transition-colors">
                 <div className="text-center text-sm text-muted-foreground">
                   <ImagePlus className="mx-auto mb-1 h-8 w-8" />
-                  Click to upload images
+                  Paste an image URL below
                 </div>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Book Title</Label>
-                <Input required className="mt-1.5" placeholder="e.g. Introduction to Algorithms" />
+                <Input required className="mt-1.5" placeholder="e.g. Introduction to Algorithms" value={form.title} onChange={(e) => update("title", e.target.value)} />
               </div>
               <div>
                 <Label>Author</Label>
-                <Input required className="mt-1.5" placeholder="e.g. Thomas Cormen" />
+                <Input required className="mt-1.5" placeholder="e.g. Thomas Cormen" value={form.author} onChange={(e) => update("author", e.target.value)} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Category</Label>
-                <Select required>
+                <Select required value={form.category} onValueChange={(value) => update("category", value)}>
                   <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {categories.filter(c => c !== "All").map(c => (
+                    {categories.filter((c) => c !== "All").map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
@@ -68,7 +103,7 @@ const SellBook = () => {
               </div>
               <div>
                 <Label>Condition</Label>
-                <Select required>
+                <Select required value={form.condition} onValueChange={(value) => update("condition", value)}>
                   <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="New">New</SelectItem>
@@ -79,17 +114,21 @@ const SellBook = () => {
               </div>
             </div>
             <div>
+              <Label>Image URL</Label>
+              <Input className="mt-1.5" placeholder="Paste an image URL, or leave blank for default" value={form.image} onChange={(e) => update("image", e.target.value)} />
+            </div>
+            <div>
               <Label>Description</Label>
-              <Textarea className="mt-1.5" rows={3} placeholder="Describe the book's condition, edition, etc." />
+              <Textarea required className="mt-1.5" rows={3} placeholder="Describe the book's condition, edition, etc." value={form.description} onChange={(e) => update("description", e.target.value)} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Price (₹)</Label>
-                <Input required type="number" min="1" className="mt-1.5" placeholder="e.g. 300" />
+                <Label>Price</Label>
+                <Input required type="number" min="1" className="mt-1.5" placeholder="e.g. 300" value={form.price} onChange={(e) => update("price", e.target.value)} />
               </div>
               <div>
                 <Label>Location</Label>
-                <Input required className="mt-1.5" placeholder="e.g. Delhi" />
+                <Input required className="mt-1.5" placeholder="e.g. Delhi" value={form.location} onChange={(e) => update("location", e.target.value)} />
               </div>
             </div>
             <Button type="submit" variant="hero" size="lg" className="w-full gap-2">
@@ -104,3 +143,4 @@ const SellBook = () => {
 };
 
 export default SellBook;
+

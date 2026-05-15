@@ -105,6 +105,19 @@ being served by Vite, and these route launchers are also available:
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
+## Backend and database
+
+The app now includes Vercel serverless API routes under `api/` and a PostgreSQL schema under `database/schema.sql`.
+
+Set these environment variables in Vercel Project Settings:
+
+```text
+DATABASE_URL=your_postgres_connection_string
+JWT_SECRET=your_long_random_secret
+```
+
+You can use Vercel Postgres, Neon, Supabase Postgres, or any hosted PostgreSQL database. The API creates the required tables automatically on first request and seeds a few starter books if the database is empty.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

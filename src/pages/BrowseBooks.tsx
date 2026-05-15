@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,21 +6,41 @@ import { Slider } from "@/components/ui/slider";
 import BookCard from "@/components/BookCard";
 import Footer from "@/components/Footer";
 import { books, categories } from "@/lib/data";
+import type { Book } from "@/lib/data";
+import { api } from "@/lib/api";
 
 const BrowseBooks = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [condition, setCondition] = useState("All");
   const [maxPrice, setMaxPrice] = useState(500);
+  const [bookList, setBookList] = useState<Book[]>(books);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = useMemo(() => {
-    return books.filter((b) => {
-      const matchSearch = b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase());
-      const matchCat = category === "All" || b.category === category;
-      const matchCond = condition === "All" || b.condition === condition;
-      const matchPrice = b.price <= maxPrice;
-      return matchSearch && matchCat && matchCond && matchPrice;
-    });
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (category !== "All") params.set("category", category);
+    if (condition !== "All") params.set("condition", condition);
+    params.set("maxPrice", String(maxPrice));
+
+    const timeout = window.setTimeout(() => {
+      setLoading(true);
+      api.listBooks(params)
+        .then(({ books: freshBooks }) => setBookList(freshBooks))
+        .catch(() => {
+          setBookList(books.filter((b) => {
+            const matchSearch = b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase());
+            const matchCat = category === "All" || b.category === category;
+            const matchCond = condition === "All" || b.condition === condition;
+            const matchPrice = b.price <= maxPrice;
+            return matchSearch && matchCat && matchCond && matchPrice;
+          }));
+        })
+        .finally(() => setLoading(false));
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
   }, [search, category, condition, maxPrice]);
 
   return (
@@ -81,13 +101,17 @@ const BrowseBooks = () => {
 
           {/* Grid */}
           <div className="flex-1">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="py-20 text-center text-muted-foreground">
+                Loading books...
+              </div>
+            ) : bookList.length === 0 ? (
               <div className="py-20 text-center text-muted-foreground">
                 No books found matching your criteria.
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {filtered.map((book) => (
+                {bookList.map((book) => (
                   <BookCard key={book.id} book={book} />
                 ))}
               </div>

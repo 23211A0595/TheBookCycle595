@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, BookOpen, ArrowRight, Upload, Repeat, ShoppingBag, Shield, Users, Leaf } from "lucide-react";
 import BookCard from "@/components/BookCard";
 import Footer from "@/components/Footer";
 import { books, testimonials } from "@/lib/data";
+import type { Book } from "@/lib/data";
+import { api } from "@/lib/api";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const steps = [
@@ -20,6 +23,14 @@ const reasons = [
 ];
 
 const Index = () => {
+  const [featuredBooks, setFeaturedBooks] = useState<Book[]>(books.slice(0, 4));
+
+  useEffect(() => {
+    api.listBooks(new URLSearchParams({ maxPrice: "99999" }))
+      .then(({ books: freshBooks }) => setFeaturedBooks(freshBooks.slice(0, 4)))
+      .catch(() => setFeaturedBooks(books.slice(0, 4)));
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -58,7 +69,7 @@ const Index = () => {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {books.slice(0, 4).map((book) => (
+          {featuredBooks.map((book) => (
             <BookCard key={book.id} book={book} />
           ))}
         </div>

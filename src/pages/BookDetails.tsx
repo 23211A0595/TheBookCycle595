@@ -1,15 +1,41 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Star, Heart, MessageSquare, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Footer from "@/components/Footer";
 import { books } from "@/lib/data";
+import type { Book } from "@/lib/data";
+import { api, getToken } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 const BookDetails = () => {
   const { id } = useParams();
-  const book = books.find((b) => b.id === id);
+  const [book, setBook] = useState<Book | undefined>(() => books.find((b) => b.id === id));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+    api.getBook(id)
+      .then(({ book }) => setBook(book))
+      .catch(() => setBook(books.find((b) => b.id === id)))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const requireLogin = () => {
+    if (!getToken()) {
+      toast({ title: "Please sign in first", description: "Create an account or log in to continue." });
+      return false;
+    }
+    return true;
+  };
+
+  if (loading) {
+    return <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">Loading book...</div>;
+  }
 
   if (!book) {
     return (
@@ -60,15 +86,44 @@ const BookDetails = () => {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button variant="hero" size="lg" className="gap-2" onClick={() => toast({ title: "Added to cart!" })}>
+              <Button
+                variant="hero"
+                size="lg"
+                className="gap-2"
+                onClick={() => {
+                  if (!requireLogin()) return;
+                  api.createOrder(book.id)
+                    .then(() => toast({ title: "Purchase request created!", description: "The seller can now confirm the order." }))
+                    .catch((error) => toast({ title: "Could not buy this book", description: error.message }));
+                }}
+              >
                 <ShoppingBag className="h-4 w-4" /> Buy Book
               </Button>
               <Link to="/messages">
-                <Button variant="outline" size="lg" className="gap-2">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => {
+                    if (!requireLogin()) return;
+                    api.sendMessage({ bookId: book.id, body: `Hi, I am interested in "${book.title}". Is it available?` })
+                      .catch(() => undefined);
+                  }}
+                >
                   <MessageSquare className="h-4 w-4" /> Message Seller
                 </Button>
               </Link>
-              <Button variant="ghost" size="lg" className="gap-2" onClick={() => toast({ title: "Added to wishlist!" })}>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="gap-2"
+                onClick={() => {
+                  if (!requireLogin()) return;
+                  api.addWishlist(book.id)
+                    .then(() => toast({ title: "Added to wishlist!" }))
+                    .catch((error) => toast({ title: "Could not update wishlist", description: error.message }));
+                }}
+              >
                 <Heart className="h-4 w-4" /> Wishlist
               </Button>
             </div>
