@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="TheBookCycle - Buy, sell, and exchange second-hand textbooks easily. A smarter marketplace for students.">
+    <script>
+      (function () {
+        var isViteDevServer = location.port === "5173";
+        var isBuiltApp = location.pathname.indexOf("/dist/") !== -1;
+
+        if (!isViteDevServer && !isBuiltApp) {
+          location.replace("./go-live.html");
+        }
+      })();
+    </script>
+    <!-- TODO: Set the document title to the name of your application -->
+    <title>TheBookCycle - Buy, Sell &amp; Exchange Textbooks</title>
+    <meta name="author" content="TheBookCycle" />
+
+    <!-- TODO: Update og:title to match your application name -->
+    
+    
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2a60fc5a-73f7-43c5-9e73-23bcb3955a02/id-preview-d82923dd--fc8e4e8e-6b82-4eb3-815a-2555182decee.lovable.app-1772703561973.png">
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2a60fc5a-73f7-43c5-9e73-23bcb3955a02/id-preview-d82923dd--fc8e4e8e-6b82-4eb3-815a-2555182decee.lovable.app-1772703561973.png">
+    <meta property="og:title" content="TheBookCycle - Buy, Sell &amp; Exchange Textbooks">
+  <meta name="twitter:title" content="TheBookCycle - Buy, Sell &amp; Exchange Textbooks">
+  <meta property="og:description" content="TheBookCycle - Buy, sell, and exchange second-hand textbooks easily. A smarter marketplace for students.">
+  <meta name="twitter:description" content="TheBookCycle - Buy, sell, and exchange second-hand textbooks easily. A smarter marketplace for students.">
+</head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
